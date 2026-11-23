@@ -269,3 +269,50 @@ function getApproximateWindowBucket(date: Date): string {
   if (hour >= 17 && hour < 22) return 'evening_window';
   return 'night_window';
 }
+
+export function recordSessionCheckinService(
+  needId: string,
+  actorId: string,
+  checkinStatus: 'safe' | 'needs_followup'
+) {
+  const actor = getUserByIdRepo(actorId);
+  assertAccountActivePolicy(actor);
+
+  const db = getDb();
+  const session = db
+    .prepare('SELECT * FROM assistance_sessions WHERE need_id = ?')
+    .get(needId) as
+    | { id: string; requester_id: string; provider_id: string; checkin_status: string }
+    | undefined;
+
+  if (!session) throw new Error('NEED_NOT_FOUND');
+  if (actorId !== session.requester_id && actorId !== session.provider_id) {
+    throw new Error('FORBIDDEN');
+  }
+
+  const nowIso = new Date().toISOString();
+  db.prepare('UPDATE assistance_sessions SET checkin_status = ?, updated_at = ? WHERE need_id = ?').run(
+    checkinStatus,
+    nowIso,
+    needId
+  );
+
+  if (checkinStatus === 'needs_followup') {
+    const circleIds = getNeedCircleIdsRepo(needId);
+    for (const cid of circleIds) {
+      const admins = db
+        .prepare(
+          `SELECT user_id FROM circle_members WHERE circle_id = ? AND status = 'active' AND role IN ('owner', 'admin', 'coordinator')`
+        )
+        .all(cid) as Array<{ user_id: string }>;
+      for (const adm of admins) {
+        db.prepare(
+          `INSERT INTO notifications (id, user_id, type, title_key, payload)
+           VALUES (?, ?, 'safety_checkin', 'notif.safety_followup', ?)`
+        ).run(crypto.randomUUID(), adm.user_id, JSON.stringify({ need_id: needId }));
+      }
+    }
+  }
+
+  return { need_id: needId, checkin_status: checkinStatus };
+}

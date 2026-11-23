@@ -1,6 +1,6 @@
 'use client';
 
-import { Ban, Check, KeyRound, Plus, Users } from 'lucide-react';
+import { ArrowUpRight, Ban, Check, Gift, KeyRound, Plus, Users } from 'lucide-react';
 import React, { useState } from 'react';
 import type { Messages } from '@/lib/i18n/messages';
 import type { CircleDto, SessionUserDto } from './types';
@@ -12,10 +12,24 @@ interface BlockedRow {
   display_name: string | null;
 }
 
+export interface SurpriseDto {
+  id: string;
+  circle_id: string;
+  circle_name: string;
+  expansion_tier: string;
+  partner_name: string;
+  title: string;
+  description: string | null;
+  quantity_available: number;
+  region_code: string;
+  my_claim_status: string | null;
+}
+
 interface Props {
   user: SessionUserDto;
   circles: CircleDto[];
   blocks: BlockedRow[];
+  surprises: SurpriseDto[];
   t: Messages;
   safePost: <T = unknown>(
     url: string,
@@ -25,16 +39,30 @@ interface Props {
   onNotify: (msg: string, tone?: 'ok' | 'error') => void;
 }
 
-export function CirclesWorkspace({ user, circles, blocks, t, safePost, onRefresh, onNotify }: Props) {
+export function CirclesWorkspace({
+  user,
+  circles,
+  blocks,
+  surprises,
+  t,
+  safePost,
+  onRefresh,
+  onNotify,
+}: Props) {
   const [inviteCode, setInviteCode] = useState('');
   const [circleName, setCircleName] = useState('');
   const [circleDesc, setCircleDesc] = useState('');
+
+  const translateErr = (code?: string) => {
+    if (!code) return 'Request failed';
+    return (t.errors as Record<string, string>)[code] || code;
+  };
 
   const handleJoin = async (e: React.FormEvent) => {
     e.preventDefault();
     const res = await safePost<{ error?: string }>('/api/circles/join', { inviteCode });
     if (!res.ok) {
-      onNotify(res.data?.error || 'INVALID_INVITE_CODE', 'error');
+      onNotify(translateErr(res.data?.error), 'error');
       return;
     }
     setInviteCode('');
@@ -51,13 +79,33 @@ export function CirclesWorkspace({ user, circles, blocks, t, safePost, onRefresh
       regionCode: user.region_code,
     });
     if (!res.ok) {
-      onNotify(res.data?.error || 'CREATE_FAILED', 'error');
+      onNotify(translateErr(res.data?.error), 'error');
       return;
     }
     setCircleName('');
     setCircleDesc('');
     await onRefresh();
     onNotify(t.circles.createBtn, 'ok');
+  };
+
+  const handleExpandTier = async (circleId: string) => {
+    const res = await safePost<{ error?: string }>('/api/circles/expand', { circleId });
+    if (!res.ok) {
+      onNotify(translateErr(res.data?.error), 'error');
+      return;
+    }
+    await onRefresh();
+    onNotify(t.extras.expandTier, 'ok');
+  };
+
+  const handleClaimSurprise = async (itemId: string) => {
+    const res = await safePost<{ error?: string }>('/api/surprises', { action: 'claim', itemId });
+    if (!res.ok) {
+      onNotify(translateErr(res.data?.error), 'error');
+      return;
+    }
+    await onRefresh();
+    onNotify(t.extras.claimed, 'ok');
   };
 
   const handleBlock = async (blockedUserId: string) => {
@@ -67,7 +115,7 @@ export function CirclesWorkspace({ user, circles, blocks, t, safePost, onRefresh
       reason: 'User initiated mutual block',
     });
     if (!res.ok) {
-      onNotify(res.data?.error || 'BLOCK_FAILED', 'error');
+      onNotify(translateErr(res.data?.error), 'error');
       return;
     }
     await onRefresh();
@@ -89,7 +137,6 @@ export function CirclesWorkspace({ user, circles, blocks, t, safePost, onRefresh
       <h2 className="text-xl font-semibold text-slate-900">{t.circles.title}</h2>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-        {/* Join Circle */}
         <form onSubmit={handleJoin} className="rounded-xl border border-slate-200 bg-white p-5 space-y-3">
           <div className="flex items-center gap-2 text-sm font-semibold text-slate-900">
             <KeyRound className="h-4 w-4 text-[#0D6E5B]" aria-hidden="true" />
@@ -111,7 +158,6 @@ export function CirclesWorkspace({ user, circles, blocks, t, safePost, onRefresh
           </button>
         </form>
 
-        {/* Create Circle */}
         <form onSubmit={handleCreate} className="rounded-xl border border-slate-200 bg-white p-5 space-y-3">
           <div className="flex items-center gap-2 text-sm font-semibold text-slate-900">
             <Plus className="h-4 w-4 text-[#0D6E5B]" aria-hidden="true" />
@@ -152,13 +198,26 @@ export function CirclesWorkspace({ user, circles, blocks, t, safePost, onRefresh
                 <p className="mt-1 text-xs text-slate-500">
                   <span className="font-mono-tabular">{circle.region_code}</span> ·{' '}
                   <span className="font-mono-tabular">{circle.invite_code}</span> ·{' '}
-                  {circle.member_count} {t.circles.membersCount}
+                  {circle.member_count} {t.circles.membersCount} ·{' '}
+                  {t.extras.tierLabel}: <span className="font-semibold text-slate-800">{circle.expansion_tier}</span>
                 </p>
               </div>
-              <span className="inline-flex items-center gap-1.5 text-xs font-medium text-[#0D6E5B]">
-                <Users className="h-4 w-4" aria-hidden="true" />
-                {circle.member_role}
-              </span>
+              <div className="flex items-center gap-3">
+                {['owner', 'admin'].includes(circle.member_role) && circle.expansion_tier !== 'global' && (
+                  <button
+                    type="button"
+                    onClick={() => void handleExpandTier(circle.id)}
+                    className="inline-flex min-h-[36px] items-center gap-1 rounded-lg border border-slate-300 px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50"
+                  >
+                    <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
+                    <span>{t.extras.expandTier}</span>
+                  </button>
+                )}
+                <span className="inline-flex items-center gap-1.5 text-xs font-medium text-[#0D6E5B]">
+                  <Users className="h-4 w-4" aria-hidden="true" />
+                  {circle.member_role}
+                </span>
+              </div>
             </div>
             {circle.description && <p className="mt-2 text-sm text-slate-600">{circle.description}</p>}
 
@@ -187,6 +246,40 @@ export function CirclesWorkspace({ user, circles, blocks, t, safePost, onRefresh
           </section>
         ))}
       </div>
+
+      {/* In-Kind Community Surprises (City Tier, Zero Money) */}
+      {surprises.length > 0 && (
+        <section className="rounded-xl border border-slate-200 bg-white p-5 space-y-3">
+          <div className="flex items-center gap-2 text-sm font-semibold text-slate-900">
+            <Gift className="h-4 w-4 text-[#0D6E5B]" aria-hidden="true" />
+            <span>{t.extras.surprisesTitle}</span>
+          </div>
+          <div className="divide-y divide-slate-100">
+            {surprises.map((s) => (
+              <div key={s.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
+                <div>
+                  <p className="text-sm font-semibold text-slate-900">{s.title}</p>
+                  <p className="text-xs text-slate-500">
+                    {s.circle_name} · {s.partner_name} · <span className="font-mono-tabular">{s.quantity_available}</span>
+                  </p>
+                </div>
+                {s.my_claim_status ? (
+                  <span className="text-xs font-medium text-[#0D6E5B]">{t.extras.claimed}</span>
+                ) : (
+                  <button
+                    type="button"
+                    disabled={s.quantity_available <= 0}
+                    onClick={() => void handleClaimSurprise(s.id)}
+                    className="min-h-[36px] rounded-lg bg-[#0D6E5B] px-3 py-1 text-xs font-medium text-white hover:bg-[#095344] disabled:opacity-40"
+                  >
+                    {t.extras.claimItem}
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Mutual Blocks */}
       {blocks.length > 0 && (

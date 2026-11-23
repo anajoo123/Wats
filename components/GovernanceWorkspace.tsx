@@ -1,9 +1,9 @@
 'use client';
 
-import { FileSearch, Key, ShieldCheck } from 'lucide-react';
+import { FileSearch, Globe2, Key, ShieldCheck } from 'lucide-react';
 import React, { useState } from 'react';
 import { formatLocalizedDateTime, type Locale, type Messages } from '@/lib/i18n/messages';
-import type { SessionUserDto } from './types';
+import type { CountryConfigDto, SessionUserDto } from './types';
 
 interface ReportDto {
   id: string;
@@ -42,6 +42,7 @@ interface Props {
   reports: ReportDto[];
   breakGlassRequests: BreakGlassDto[];
   auditLogs: AuditDto[];
+  countries: CountryConfigDto[];
   locale: Locale;
   t: Messages;
   safePost: <T = unknown>(
@@ -58,6 +59,7 @@ export function GovernanceWorkspace({
   reports,
   breakGlassRequests,
   auditLogs,
+  countries,
   locale,
   t,
   safePost,
@@ -68,6 +70,7 @@ export function GovernanceWorkspace({
   const [breakGlassReason, setBreakGlassReason] = useState('');
   const [inspectedNeed, setInspectedNeed] = useState<Record<string, unknown> | null>(null);
   const [appealNotes, setAppealNotes] = useState<Record<string, string>>({});
+  const [newCountryCode, setNewCountryCode] = useState('');
 
   const handleReview = async (reportId: string, status: 'actioned' | 'dismissed') => {
     const res = await safePost<{ error?: string }>('/api/moderation', {
@@ -126,6 +129,32 @@ export function GovernanceWorkspace({
       return;
     }
     setInspectedNeed(data.need);
+  };
+
+  const handleApproveCountry = async (countryCode: string, status: 'approved' | 'restricted') => {
+    const res = await safePost<{ error?: string }>('/api/countries', {
+      countryCode,
+      legalReviewStatus: status,
+    });
+    if (!res.ok) {
+      onNotify(res.data?.error || 'COUNTRY_UPDATE_FAILED', 'error');
+      return;
+    }
+    await onRefresh();
+  };
+
+  const handleAddCountry = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!/^[A-Z]{2}$/.test(newCountryCode)) return;
+    const res = await safePost<{ error?: string }>('/api/countries', {
+      countryCode: newCountryCode,
+      defaultLocale: 'en',
+      legalReviewStatus: 'pending',
+    });
+    if (res.ok) {
+      setNewCountryCode('');
+      await onRefresh();
+    }
   };
 
   return (
@@ -205,7 +234,7 @@ export function GovernanceWorkspace({
         </div>
       </section>
 
-      {/* Break-Glass Access & Inspection */}
+      {/* Break-Glass Access & Audit Logs */}
       {isModerator && (
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <form onSubmit={handleBreakGlass} className="rounded-xl border border-slate-200 bg-white p-5 space-y-3">
@@ -263,7 +292,6 @@ export function GovernanceWorkspace({
             )}
           </form>
 
-          {/* Immutable Audit Log */}
           <section className="rounded-xl border border-slate-200 bg-white p-5 space-y-3">
             <h3 className="text-sm font-semibold text-slate-900">{t.governance.auditLogTitle}</h3>
             <div className="max-h-80 overflow-y-auto divide-y divide-slate-100">
@@ -284,6 +312,77 @@ export function GovernanceWorkspace({
           </section>
         </div>
       )}
+
+      {/* Global Country Readiness Table (Data-driven, Zero-Code Activation) */}
+      <section className="rounded-xl border border-slate-200 bg-white p-5 space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2 text-sm font-semibold text-slate-900">
+            <Globe2 className="h-4 w-4 text-[#0D6E5B]" aria-hidden="true" />
+            <span>{t.extras.countryGovernanceTitle}</span>
+          </div>
+          {isModerator && (
+            <form onSubmit={handleAddCountry} className="flex items-center gap-2">
+              <input
+                type="text"
+                maxLength={2}
+                value={newCountryCode}
+                onChange={(e) => setNewCountryCode(e.target.value.toUpperCase())}
+                placeholder={t.extras.addCountryCode}
+                className="font-mono-tabular w-32 rounded-lg border border-slate-300 px-2.5 py-1.5 text-xs text-slate-900"
+              />
+              <button
+                type="submit"
+                className="min-h-[36px] rounded-lg bg-slate-900 px-3 py-1 text-xs font-medium text-white hover:bg-slate-800"
+              >
+                +
+              </button>
+            </form>
+          )}
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-start text-xs">
+            <thead>
+              <tr className="border-b border-slate-200 text-slate-500">
+                <th className="py-2 text-start font-medium">ISO</th>
+                <th className="py-2 text-start font-medium">Locale</th>
+                <th className="py-2 text-start font-medium">Min Age</th>
+                <th className="py-2 text-start font-medium">Retention</th>
+                <th className="py-2 text-start font-medium">Financial MVP</th>
+                <th className="py-2 text-start font-medium">Legal Review</th>
+                {isModerator && <th className="py-2 text-end font-medium">Action</th>}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {countries.map((c) => (
+                <tr key={c.country_code}>
+                  <td className="font-mono-tabular py-2.5 font-semibold text-slate-900">{c.country_code}</td>
+                  <td className="font-mono-tabular py-2.5 text-slate-700">{c.default_locale}</td>
+                  <td className="font-mono-tabular py-2.5 text-slate-700">{c.min_age}</td>
+                  <td className="font-mono-tabular py-2.5 text-slate-700">{c.data_retention_days}d</td>
+                  <td className="font-mono-tabular py-2.5 text-slate-700">
+                    {String(c.financial_features_enabled)}
+                  </td>
+                  <td className="font-mono-tabular py-2.5 text-slate-800">{c.legal_review_status}</td>
+                  {isModerator && (
+                    <td className="py-2.5 text-end">
+                      {c.legal_review_status !== 'approved' && (
+                        <button
+                          type="button"
+                          onClick={() => void handleApproveCountry(c.country_code, 'approved')}
+                          className="min-h-[32px] rounded-md border border-[#0D6E5B] px-2.5 py-1 text-xs font-medium text-[#0D6E5B] hover:bg-[#0D6E5B]/5"
+                        >
+                          {t.extras.approveCountry}
+                        </button>
+                      )}
+                    </td>
+                  )}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
     </div>
   );
 }

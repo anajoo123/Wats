@@ -6,12 +6,19 @@ import { getDb } from '@/lib/db/client';
 import { checkIdempotency, saveIdempotency } from '@/lib/security/idempotency';
 import { getUserByIdRepo } from '@/modules/auth/repo';
 import { deactivateAccountService } from '@/modules/auth/service';
+import { expandCircleTierService } from '@/modules/circles/service';
 import { generateMatchesForNeedService, respondToMatchService } from '@/modules/matching/service';
 import {
   inspectPrivateNeedWithBreakGlassService,
   requestBreakGlassService,
+  submitReportService,
 } from '@/modules/moderation/service';
-import { createNeedService, listVisibleNeedsService, transitionNeedService } from '@/modules/needs/service';
+import {
+  createNeedService,
+  listVisibleNeedsService,
+  recordSessionCheckinService,
+  transitionNeedService,
+} from '@/modules/needs/service';
 import {
   blockUserService,
   getContactRevealService,
@@ -19,6 +26,7 @@ import {
   updateConsentService,
   updateContactRevealConsentService,
 } from '@/modules/privacy/service';
+import { claimSurpriseItemService, createSurpriseItemService } from '@/modules/surprises/service';
 
 const AHMED = '11111111-1111-1111-1111-111111111111';
 const SARA = '22222222-2222-2222-2222-222222222222';
@@ -160,3 +168,48 @@ describe('Mandatory Security, Isolation, State Machine, and Privacy Acceptance C
     expect(contact.phone_e164).toBeNull();
   });
 });
+
+describe('Section 14 Expansion Gate, Safety Check-in & Non-Monetary Surprises', () => {
+  it('blocks circle tier expansion while open reports exist, then allows after clearance', () => {
+    const report = submitReportService(SARA, {
+      targetType: 'need',
+      targetId: 'need-demo-1',
+      reasonCode: 'safety_concern',
+      details: 'Checking expansion gate',
+    });
+
+    expect(() => expandCircleTierService(AHMED, NORTH_CIRCLE)).toThrow(/OPEN_REPORTS_BLOCK_EXPANSION/);
+
+    // Clear the report as moderator
+    const db = getDb();
+    db.prepare(`UPDATE reports SET status = 'dismissed' WHERE id = ?`).run(report.id);
+
+    const expanded1 = expandCircleTierService(AHMED, NORTH_CIRCLE);
+    expect(expanded1.expansion_tier).toBe('neighborhood');
+
+    const expanded2 = expandCircleTierService(AHMED, NORTH_CIRCLE);
+    expect(expanded2.expansion_tier).toBe('city');
+
+    // Now at City tier: Level 4 user/partner can publish non-monetary surprise item
+    db.prepare('UPDATE users SET trust_level = 4 WHERE id = ?').run(AHMED);
+    const item = createSurpriseItemService(AHMED, {
+      circleId: NORTH_CIRCLE,
+      title: 'Community Book Box',
+      quantityAvailable: 3,
+      regionCode: 'SA-RUH-N01',
+    }) as { id: string };
+
+    const claim = claimSurpriseItemService(SARA, item.id) as { status: string };
+    expect(claim.status).toBe('reserved');
+  });
+
+  it('records safety check-in and notifies coordinator when followup is requested', () => {
+    const db = getDb();
+    const sessionRow = db
+      .prepare('SELECT need_id FROM assistance_sessions LIMIT 1')
+      .get() as { need_id: string };
+    const res = recordSessionCheckinService(sessionRow.need_id, AHMED, 'needs_followup');
+    expect(res.checkin_status).toBe('needs_followup');
+  });
+});
+

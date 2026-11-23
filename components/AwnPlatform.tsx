@@ -51,6 +51,20 @@ export function AwnPlatform({ initial }: { initial: InitialPayload }) {
   const [needs, setNeeds] = useState<NeedDto[]>([]);
   const [offers, setOffers] = useState<OfferDto[]>([]);
   const [circles, setCircles] = useState<CircleDto[]>([]);
+  const [surprises, setSurprises] = useState<
+    Array<{
+      id: string;
+      circle_id: string;
+      circle_name: string;
+      expansion_tier: string;
+      partner_name: string;
+      title: string;
+      description: string | null;
+      quantity_available: number;
+      region_code: string;
+      my_claim_status: string | null;
+    }>
+  >([]);
   const [consents, setConsents] = useState<
     Array<{ purpose: 'share_need_in_circle' | 'reveal_contact' | 'publish_impact' | 'checkin'; version: number; status: 'granted' | 'revoked' }>
   >([]);
@@ -123,15 +137,17 @@ export function AwnPlatform({ initial }: { initial: InitialPayload }) {
           setNeeds([]);
           setOffers([]);
           setCircles([]);
+          setSurprises([]);
           setLoadingData(false);
           return;
         }
       }
 
-      const [needsRes, offersRes, circlesRes, privacyRes, impactRes, govRes] = await Promise.all([
+      const [needsRes, offersRes, circlesRes, surprisesRes, privacyRes, impactRes, govRes] = await Promise.all([
         fetch('/api/needs'),
         fetch('/api/offers'),
         fetch('/api/circles'),
+        fetch('/api/surprises'),
         fetch('/api/privacy'),
         fetch('/api/impact'),
         fetch('/api/moderation'),
@@ -140,6 +156,7 @@ export function AwnPlatform({ initial }: { initial: InitialPayload }) {
       if (needsRes.ok) setNeeds((await needsRes.json()).needs || []);
       if (offersRes.ok) setOffers((await offersRes.json()).offers || []);
       if (circlesRes.ok) setCircles((await circlesRes.json()).circles || []);
+      if (surprisesRes.ok) setSurprises((await surprisesRes.json()).surprises || []);
       if (privacyRes.ok) {
         const p = await privacyRes.json();
         setConsents(p.consents || []);
@@ -434,6 +451,7 @@ export function AwnPlatform({ initial }: { initial: InitialPayload }) {
                 user={user}
                 circles={circles}
                 blocks={blocks}
+                surprises={surprises}
                 t={t}
                 safePost={safePost}
                 onRefresh={loadWorkspaceData}
@@ -474,6 +492,7 @@ export function AwnPlatform({ initial }: { initial: InitialPayload }) {
                 reports={governance.reports}
                 breakGlassRequests={governance.break_glass_requests}
                 auditLogs={governance.audit_logs}
+                countries={countries}
                 locale={locale}
                 t={t}
                 safePost={safePost}

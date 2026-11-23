@@ -590,6 +590,35 @@ export function NeedsWorkspace({
                           {t.needs.cancelNeed}
                         </button>
                       )}
+
+                      {['in_progress', 'completed'].includes(need.status) && (isRequester || isAssignedProvider) && (
+                        <>
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              const r = await safePost<{ error?: string }>(`/api/needs/${need.id}/checkin`, {
+                                status: 'safe',
+                              });
+                              if (r.ok) onNotify(t.extras.checkinSafe, 'ok');
+                            }}
+                            className="min-h-[40px] rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-900 hover:bg-emerald-100"
+                          >
+                            {t.extras.checkinSafe}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              const r = await safePost<{ error?: string }>(`/api/needs/${need.id}/checkin`, {
+                                status: 'needs_followup',
+                              });
+                              if (r.ok) onNotify(t.extras.checkinFollowup, 'ok');
+                            }}
+                            className="min-h-[40px] rounded-lg border border-amber-300 bg-amber-50 px-3 py-1.5 text-xs font-medium text-amber-900 hover:bg-amber-100"
+                          >
+                            {t.extras.checkinFollowup}
+                          </button>
+                        </>
+                      )}
                     </div>
 
                     {!isRequester && (

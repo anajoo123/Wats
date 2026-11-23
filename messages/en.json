@@ -174,6 +174,20 @@
     "BREAK_GLASS_REQUIRED": "Access denied: an active, justified break-glass request is required.",
     "RATE_LIMIT_EXCEEDED": "Daily rate limit reached for this action.",
     "BLOCKED_INTERACTION": "Action blocked due to mutual block.",
-    "DUAL_ACCEPTANCE_REQUIRED": "Both requester and provider must accept before transitioning to accepted."
+    "DUAL_ACCEPTANCE_REQUIRED": "Both requester and provider must accept before transitioning to accepted.",
+    "OPEN_REPORTS_BLOCK_EXPANSION": "Blocked: all open reports must be reviewed before advancing expansion tier.",
+    "PARTNER_OR_CITY_TIER_REQUIRED": "In-kind surprises require City tier and Partner or Trust L4 role."
+  },
+  "extras": {
+    "checkinSafe": "Check-in: Safe",
+    "checkinFollowup": "Request Coordinator Follow-up",
+    "expandTier": "Advance Expansion Tier",
+    "tierLabel": "Tier",
+    "surprisesTitle": "Non-Monetary Community Surprises (City Tier)",
+    "claimItem": "Reserve Item",
+    "claimed": "Reserved",
+    "countryGovernanceTitle": "Global Country Readiness (country_config)",
+    "approveCountry": "Approve Legal Review",
+    "addCountryCode": "New Country ISO-2"
   }
 }
