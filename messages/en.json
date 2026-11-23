@@ -1,0 +1,179 @@
+{
+  "brand": {
+    "name": "Awn",
+    "subtitle": "Community Mutual Aid Circles"
+  },
+  "nav": {
+    "needs": "Needs",
+    "circles": "Circles",
+    "sos": "SOS",
+    "impact": "Impact",
+    "governance": "Governance",
+    "newNeed": "New Need"
+  },
+  "hero": {
+    "headline": "Trusted neighbor mutual aid, protected by strict privacy and RLS",
+    "subhead": "Closed trust circles with zero ad tracking, no exact coordinates, and dual consent before any contact reveal.",
+    "ctaPrimary": "Post a Need",
+    "ctaSos": "Urgent SOS"
+  },
+  "auth": {
+    "activeMember": "Active Session",
+    "switchAccount": "Switch Account (Real DB Session)",
+    "registerTitle": "Register Member",
+    "loginTitle": "Sign In",
+    "email": "Email",
+    "password": "Password",
+    "displayName": "Display Name",
+    "country": "Country",
+    "regionCode": "Approximate Region Code (Country-Region-Cell)",
+    "phone": "Private Contact Phone (hidden until dual reveal)",
+    "channel": "Preferred Channel",
+    "ageDeclaration": "I confirm I am at least {minAge} years old per selected country policy",
+    "submitRegister": "Create Account",
+    "submitLogin": "Sign In",
+    "exportData": "Export My Data (JSON)",
+    "deleteAccount": "Deactivate & Erase PII",
+    "deleteImmediate": "Anonymize PII immediately (Acceptance Test)",
+    "confirmDeletePlaceholder": "Type DELETE to confirm"
+  },
+  "status": {
+    "draft": "Draft",
+    "published": "Published",
+    "matched": "Match Suggested",
+    "accepted": "Dual Accepted",
+    "in_progress": "In Progress",
+    "completed": "Completed",
+    "cancelled": "Cancelled",
+    "expired": "Expired",
+    "under_review": "Under Review"
+  },
+  "category": {
+    "groceries": "Groceries & Essentials",
+    "transport": "Transport & Rides",
+    "medical_errand": "Medical & Pharmacy Errand",
+    "elderly_care": "Elderly Support",
+    "tech_help": "Tech Assistance",
+    "childcare_support": "Urgent Childcare",
+    "home_repair": "Home Repair",
+    "sos_support": "Community SOS"
+  },
+  "urgency": {
+    "low": "Flexible",
+    "normal": "Normal",
+    "high": "Urgent",
+    "sos": "Immediate SOS"
+  },
+  "needs": {
+    "title": "Circle Needs & Ready Offers",
+    "filterAll": "All",
+    "filterMine": "My Needs",
+    "filterActive": "Active",
+    "createTitle": "Post a Mutual Aid Need",
+    "fieldTitle": "Need Title",
+    "fieldDesc": "Details (avoid street addresses or phone numbers)",
+    "fieldCategory": "Category",
+    "fieldUrgency": "Urgency",
+    "fieldCircle": "Target Circle",
+    "fieldHours": "Time Window (Hours)",
+    "fieldImage": "Optional Photo (EXIF & GPS stripped automatically)",
+    "publishNow": "Publish immediately to circle",
+    "submitNeed": "Save Need",
+    "runMatch": "Generate Explainable Matches",
+    "acceptMatch": "Accept Match",
+    "declineMatch": "Decline",
+    "startAssist": "Start Assistance (Provider)",
+    "completeAssist": "Mark Completed (Requester Only)",
+    "withdrawAssist": "Provider Withdraw (Reverts to Published)",
+    "cancelNeed": "Cancel Need",
+    "reportNeed": "Report",
+    "emptyTitle": "No visible needs in your circles yet",
+    "emptyHint": "Create a new need or join a circle with an invite code.",
+    "offersHeading": "Ready Offers in Your Circles",
+    "addOffer": "Post Aid Offer",
+    "capacityLabel": "Available Capacity"
+  },
+  "matching": {
+    "scoreLabel": "Match Score",
+    "skill": "Skill Match",
+    "region": "Region Proximity",
+    "availability": "Time Overlap",
+    "load": "Load Balance",
+    "noBiasNote": "Rule-based only — never influenced by wealth, donations, or past aid counts.",
+    "statusSuggested": "Suggested",
+    "statusAcceptedReq": "Awaiting Provider",
+    "statusAcceptedProv": "Awaiting Requester",
+    "statusAcceptedBoth": "Dual Accepted"
+  },
+  "contact": {
+    "title": "Dual-Consent Contact Reveal",
+    "grantMyConsent": "Consent to Reveal My Contact",
+    "revokeMyConsent": "Revoke Contact Reveal",
+    "waitingOther": "Your consent is recorded — awaiting the other party.",
+    "locked": "Private contact details remain isolated until both parties grant consent.",
+    "revealed": "Dual Consent Active — Contact Details:"
+  },
+  "circles": {
+    "title": "Trust Circles & Membership",
+    "createTitle": "Create Trust Circle",
+    "joinTitle": "Join via Invite Code",
+    "inviteCode": "Invite Code",
+    "joinBtn": "Join Circle",
+    "createBtn": "Create Circle",
+    "membersCount": "members",
+    "blockMember": "Mutual Block",
+    "unblockMember": "Unblock",
+    "blockedTitle": "Mutual Blocks (Complete Invisibility)"
+  },
+  "sos": {
+    "title": "Community SOS Flow",
+    "mandatoryNoticeTitle": "Official Emergency Numbers First",
+    "mandatoryNoticeBody": "Awn provides community mutual aid only, NOT an official emergency service, with NO guaranteed response time. For life-threatening emergencies, call official responders first:",
+    "ackCheckbox": "I have reviewed official emergency numbers and understand this is community support only",
+    "sendSos": "Alert Authorized Circle Members",
+    "police": "Police",
+    "ambulance": "Ambulance",
+    "fire": "Fire",
+    "unified": "Unified Emergency"
+  },
+  "impact": {
+    "title": "Anonymized Impact Thread & Consents",
+    "privacyNote": "Impact events appear only when ALL participants grant consent, showing category and approximate window only — zero names or locations.",
+    "consentsTitle": "Revocable Privacy Consents",
+    "notificationsTitle": "Notifications",
+    "markRead": "Mark All Read"
+  },
+  "governance": {
+    "title": "Moderation Queue & Break-Glass Audit",
+    "reportsQueue": "Reports Queue (Snapshot-Only Scope)",
+    "breakGlassTitle": "Break-Glass Access Request",
+    "breakGlassDesc": "Moderators cannot read non-reported private needs without logging a justified, time-bounded break-glass request.",
+    "breakGlassReason": "Documented Reason (min 10 chars)",
+    "inspectNeedId": "Target Need ID",
+    "requestBreakGlass": "Request Break-Glass Access",
+    "inspectPrivateNeed": "Inspect Private Need",
+    "auditLogTitle": "Immutable Append-Only Audit Log",
+    "appealBtn": "Submit Appeal",
+    "reviewAction": "Action Report",
+    "dismissAction": "Dismiss"
+  },
+  "pwa": {
+    "install": "Install App",
+    "iosGuideTitle": "Install on iPhone / iPad",
+    "iosGuideBody": "Tap Share in Safari toolbar, then select Add to Home Screen.",
+    "offlineBanner": "Offline Mode — Mutations are queued with stable Idempotency-Keys for safe replay.",
+    "simulateOffline": "Simulate Offline",
+    "backOnline": "Back Online",
+    "queuedCount": "Pending Sync: {count}",
+    "replayNow": "Replay Queue Safely"
+  },
+  "errors": {
+    "UNAUTHORIZED": "Authentication required.",
+    "FORBIDDEN": "You are not authorized for this action.",
+    "ONLY_REQUESTER_CAN_COMPLETE": "Only the need requester can mark a need as completed.",
+    "BREAK_GLASS_REQUIRED": "Access denied: an active, justified break-glass request is required.",
+    "RATE_LIMIT_EXCEEDED": "Daily rate limit reached for this action.",
+    "BLOCKED_INTERACTION": "Action blocked due to mutual block.",
+    "DUAL_ACCEPTANCE_REQUIRED": "Both requester and provider must accept before transitioning to accepted."
+  }
+}

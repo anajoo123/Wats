@@ -1,0 +1,6 @@
+{
+  "name": "Awn | عَون",
+  "description": "Privacy-first community mutual aid circles platform with strict RLS, explainable matching, and global readiness.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
